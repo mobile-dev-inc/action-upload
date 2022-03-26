@@ -1,0 +1,31 @@
+{
+  "name": "action-upload",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "release": "./_release.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mobile-dev-inc/action-upload.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mobile-dev-inc/action-upload/issues"
+  },
+  "homepage": "https://github.com/mobile-dev-inc/action-upload#readme",
+  "devDependencies": {
+    "@types/node": "^17.0.23",
+    "typescript": "^4.6.3"
+  },
+  "dependencies": {
+    "@actions/core": "^1.6.0",
+    "@actions/github": "^5.0.0",
+    "@vercel/ncc": "^0.33.3",
+    "node-fetch": "^3.2.3",
+    "node-stream-zip": "^1.15.0"
+  }
+}
