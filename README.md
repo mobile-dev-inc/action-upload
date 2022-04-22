@@ -5,7 +5,7 @@ Upload your app to mobile.dev for analysis.
 # Example
 
 ```yaml
-- uses: mobile-dev-inc/action-upload@v0.0.1
+- uses: mobile-dev-inc/action-upload@v1.0.0
   with:
     api-key: ${{ secrets.MOBILE_DEV_API_KEY }}
     name: ${{ github.sha }}
@@ -17,7 +17,7 @@ Upload your app to mobile.dev for analysis.
 Include the Proguard mapping file to deobfuscate Android performance traces:
 
 ```yaml
-- uses: mobile-dev-inc/action-upload@v0.0.1
+- uses: mobile-dev-inc/action-upload@v1.0.0
   with:
     api-key: ${{ secrets.MOBILE_DEV_API_KEY }}
     name: ${{ github.sha }}
