@@ -2,7 +2,7 @@
 
 Upload your app to mobile.dev for analysis.
 
-# Example
+# Android
 
 ```yaml
 - uses: mobile-dev-inc/action-upload@v1.0.0
@@ -12,7 +12,9 @@ Upload your app to mobile.dev for analysis.
     app-file: app/build/outputs/apk/debug/app-debug.apk
 ```
 
-# Android Deobfuscation
+`app-file` should point to an x86 compatible APK file
+
+### Proguard Deobfuscation
 
 Include the Proguard mapping file to deobfuscate Android performance traces:
 
@@ -24,3 +26,15 @@ Include the Proguard mapping file to deobfuscate Android performance traces:
     app-file: app/build/outputs/apk/release/app-release.apk
     mapping-file: app/build/outputs/mapping/release/mapping.txt
 ```
+
+# iOS
+
+```yaml
+- uses: mobile-dev-inc/action-upload@v1.0.0
+  with:
+    api-key: ${{ secrets.MOBILE_DEV_API_KEY }}
+    name: ${{ github.sha }}
+    app-file: app.zip
+```
+
+`app-file` should point to an x86 compatible Simulator build packaged in a `zip` archive
