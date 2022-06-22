@@ -4,7 +4,7 @@ Upload your app to mobile.dev for analysis.
 
 # Triggers
 
-Trigger the this action on (1) pushes to your main branch and (2) pull requests opened against your main branch:
+Trigger this action on (1) pushes to your main branch and (2) pull requests opened against your main branch:
 
 
 ```yaml
