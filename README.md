@@ -25,8 +25,7 @@ on:
     branches: [ master ]
 jobs:
   upload-to-mobile-dev:
-    runs-on: ubuntu-latest
-    name: Upload artifact to mobile.dev
+    name: Upload build to mobile.dev
     steps:
       - uses: actions/checkout@v3
         with:
