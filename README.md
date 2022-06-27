@@ -15,6 +15,24 @@ on:
     branches: [ master ]
 ```
 
+If you need to use the `pull_request_target` trigger to support repo forks, check out the HEAD of the pull request to ensure that you're running the mobile.dev analysis against the changed code:
+
+```yaml
+on:
+  push:
+    branches: [ master ]
+  pull_request_target:
+    branches: [ master ]
+jobs:
+  upload-to-mobile-dev:
+    runs-on: ubuntu-latest
+    name: Upload artifact to mobile.dev
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }} # Checkout PR HEAD
+```
+
 # Android
 
 ```yaml
