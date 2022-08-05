@@ -1,6 +1,9 @@
 import * as core from '@actions/core'
 import ApiClient from './ApiClient'
+import zipFolder from './archive_utils';
 import { getParameters } from './params';
+
+const knownAppTypes = ['ANDROID_APK', 'IOS_BUNDLE']
 
 async function run() {
   const {
@@ -15,32 +18,27 @@ async function run() {
     pullRequestId
   } = await getParameters()
 
-  const client = new ApiClient(apiKey, apiUrl)
-
-  if (appFile.type === 'ANDROID_APK') {
-    const { id: appId } = await client.uploadApp(appFile.path, 'apk');
-    if (mappingFile) await client.uploadMapping(mappingFile, appId)
-    await client.createAnalysisRequest({
-      benchmarkName: name,
-      apkId: appId,
-      branch: branchName,
-      repoOwner: repoOwner,
-      repoName: repoName,
-      pullRequestId: pullRequestId
-    })
-  } else if (appFile.type === 'IOS_BUNDLE') {
-    const { id: appId } = await client.uploadApp(appFile.path, 'iosAppBinary');
-    await client.createAnalysisRequest({
-      benchmarkName: name,
-      iosAppBinaryId: appId,
-      branch: branchName,
-      repoOwner: repoOwner,
-      repoName: repoName,
-      pullRequestId: pullRequestId
-    })
-  } else {
+  if (!knownAppTypes.includes(appFile.type)) {
     throw new Error(`Unsupported app file type: ${appFile.type}`)
   }
+
+  zipFolder('.mobiledev', 'workspace.zip')
+
+  const client = new ApiClient(apiKey, apiUrl)
+
+  const request = {
+    benchmarkName: name,
+    branch: branchName,
+    repoOwner: repoOwner,
+    repoName: repoName,
+    pullRequestId: pullRequestId
+  }
+  await client.uploadRequest(
+    request,
+    appFile.path,
+    'workspace.zip',
+    mappingFile,
+  )
 }
 
 run().catch(e => {
