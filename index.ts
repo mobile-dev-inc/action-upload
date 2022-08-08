@@ -1,4 +1,5 @@
 import * as core from '@actions/core'
+import { existsSync } from 'fs';
 import ApiClient from './ApiClient'
 import zipFolder from './archive_utils';
 import { getParameters } from './params';
@@ -12,6 +13,7 @@ async function run() {
     name,
     appFile,
     mappingFile,
+    workspaceFolder,
     branchName,
     repoOwner,
     repoName,
@@ -23,7 +25,18 @@ async function run() {
   }
 
   console.log("Packaging .mobiledev folder")
-  await zipFolder('.mobiledev', 'workspace.zip')
+  var actualWorkspaceFolder;
+  if (workspaceFolder) {
+    actualWorkspaceFolder = workspaceFolder;
+  } else {
+    actualWorkspaceFolder = '.mobiledev';
+  }
+
+  if (!existsSync(actualWorkspaceFolder)) {
+    throw `Workspace folder does not exist: ${workspaceFolder}`;
+  }
+
+  await zipFolder(actualWorkspaceFolder, 'workspace.zip');
 
   const client = new ApiClient(apiKey, apiUrl)
 

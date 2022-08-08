@@ -7,7 +7,8 @@ export type Params = {
   apiUrl: string,
   name: string,
   appFile: AppFile
-  mappingFile: string,
+  mappingFile: string | null,
+  workspaceFolder: string | null,
   branchName: string
   repoName: string
   repoOwner: string
@@ -53,11 +54,12 @@ export async function getParameters(): Promise<Params> {
   const apiKey = core.getInput('api-key', { required: true })
   const appFileInput = core.getInput('app-file', { required: true })
   const mappingFileInput = core.getInput('mapping-file', { required: false })
+  const workspaceFolder = core.getInput('workspace', { required: false })
   const mappingFile = mappingFileInput && validateMappingFile(mappingFileInput)
   const appFile = await validateAppFile(appFileInput)
   const branchName = getBranchName()
   const repoOwner = getRepoOwner();
   const repoName = getRepoName();
   const pullRequestId = getPullRequestId()
-  return { apiUrl, name, apiKey, appFile, mappingFile, branchName, repoOwner, repoName, pullRequestId }
+  return { apiUrl, name, apiKey, appFile, mappingFile, workspaceFolder, branchName, repoOwner, repoName, pullRequestId }
 }
