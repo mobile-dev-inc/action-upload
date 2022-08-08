@@ -43912,18 +43912,29 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
+const fs_1 = __nccwpck_require__(7147);
 const ApiClient_1 = __importDefault(__nccwpck_require__(9494));
 const archive_utils_1 = __importDefault(__nccwpck_require__(1132));
 const params_1 = __nccwpck_require__(805);
 const knownAppTypes = ['ANDROID_APK', 'IOS_BUNDLE'];
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
-        const { apiKey, apiUrl, name, appFile, mappingFile, branchName, repoOwner, repoName, pullRequestId } = yield (0, params_1.getParameters)();
+        const { apiKey, apiUrl, name, appFile, mappingFile, workspaceFolder, branchName, repoOwner, repoName, pullRequestId } = yield (0, params_1.getParameters)();
         if (!knownAppTypes.includes(appFile.type)) {
             throw new Error(`Unsupported app file type: ${appFile.type}`);
         }
         console.log("Packaging .mobiledev folder");
-        yield (0, archive_utils_1.default)('.mobiledev', 'workspace.zip');
+        var actualWorkspaceFolder;
+        if (workspaceFolder) {
+            actualWorkspaceFolder = workspaceFolder;
+        }
+        else {
+            actualWorkspaceFolder = '.mobiledev';
+        }
+        if (!(0, fs_1.existsSync)(actualWorkspaceFolder)) {
+            throw `Workspace folder does not exist: ${workspaceFolder}`;
+        }
+        yield (0, archive_utils_1.default)(actualWorkspaceFolder, 'workspace.zip');
         const client = new ApiClient_1.default(apiKey, apiUrl);
         console.log("Uploading to mobile.dev");
         const request = {
@@ -44023,13 +44034,14 @@ function getParameters() {
         const apiKey = core.getInput('api-key', { required: true });
         const appFileInput = core.getInput('app-file', { required: true });
         const mappingFileInput = core.getInput('mapping-file', { required: false });
+        const workspaceFolder = core.getInput('workspace', { required: false });
         const mappingFile = mappingFileInput && (0, app_file_1.validateMappingFile)(mappingFileInput);
         const appFile = yield (0, app_file_1.validateAppFile)(appFileInput);
         const branchName = getBranchName();
         const repoOwner = getRepoOwner();
         const repoName = getRepoName();
         const pullRequestId = getPullRequestId();
-        return { apiUrl, name, apiKey, appFile, mappingFile, branchName, repoOwner, repoName, pullRequestId };
+        return { apiUrl, name, apiKey, appFile, mappingFile, workspaceFolder, branchName, repoOwner, repoName, pullRequestId };
     });
 }
 exports.getParameters = getParameters;
