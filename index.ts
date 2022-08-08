@@ -22,10 +22,12 @@ async function run() {
     throw new Error(`Unsupported app file type: ${appFile.type}`)
   }
 
-  zipFolder('.mobiledev', 'workspace.zip')
+  console.log("Packaging .mobiledev folder")
+  await zipFolder('.mobiledev', 'workspace.zip')
 
   const client = new ApiClient(apiKey, apiUrl)
 
+  console.log("Uploading to mobile.dev")
   const request = {
     benchmarkName: name,
     branch: branchName,

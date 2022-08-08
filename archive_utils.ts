@@ -1,15 +1,26 @@
-const zipFolder = (inputDirectory: string, outpuArchive: string) => {
-    const archiver = require("archiver");
-    const { createWriteStream } = require("fs");
+const archiver = require("archiver");
+const { createWriteStream } = require("fs");
 
-    const output = createWriteStream(outpuArchive);
+const zipFolder = async (inputDirectory: string, outpuArchive: string): Promise<any> => {
+    return new Promise((resolve, reject) => {
+        const output = createWriteStream(outpuArchive);
 
-    const archive = archiver('zip');
-    archive.pipe(output);
+        output.on('close', () => {
+            resolve(true)
+        });
 
-    archive.directory(inputDirectory, false);
+        const archive = archiver('zip');
 
-    archive.finalize();
+        archive.on('error', (err: any) => {
+            reject(err);
+        });
+
+        archive.pipe(output);
+
+        archive.directory(inputDirectory, false);
+
+        archive.finalize();
+    });
 }
 
 export default zipFolder
