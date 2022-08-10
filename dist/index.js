@@ -43939,12 +43939,14 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const fs_1 = __nccwpck_require__(7147);
 const ApiClient_1 = __importDefault(__nccwpck_require__(9494));
+const app_file_1 = __nccwpck_require__(9617);
 const archive_utils_1 = __nccwpck_require__(1132);
 const params_1 = __nccwpck_require__(805);
 const knownAppTypes = ['ANDROID_APK', 'IOS_BUNDLE'];
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
-        const { apiKey, apiUrl, name, appFile, mappingFile, workspaceFolder, branchName, repoOwner, repoName, pullRequestId } = yield (0, params_1.getParameters)();
+        const { apiKey, apiUrl, name, appFilePath, mappingFile, workspaceFolder, branchName, repoOwner, repoName, pullRequestId } = yield (0, params_1.getParameters)();
+        const appFile = yield (0, app_file_1.validateAppFile)(yield (0, archive_utils_1.zipIfFolder)(appFilePath));
         if (!knownAppTypes.includes(appFile.type)) {
             throw new Error(`Unsupported app file type: ${appFile.type}`);
         }
@@ -43969,7 +43971,7 @@ function run() {
             repoName: repoName,
             pullRequestId: pullRequestId
         };
-        yield client.uploadRequest(request, yield (0, archive_utils_1.zipIfFolder)(appFile.path), 'workspace.zip', mappingFile && (yield (0, archive_utils_1.zipIfFolder)(mappingFile)));
+        yield client.uploadRequest(request, appFile.path, 'workspace.zip', mappingFile && (yield (0, archive_utils_1.zipIfFolder)(mappingFile)));
     });
 }
 run().catch(e => {
@@ -44057,16 +44059,15 @@ function getParameters() {
         const apiUrl = 'https://api.mobile.dev';
         const name = core.getInput('name', { required: true });
         const apiKey = core.getInput('api-key', { required: true });
-        const appFileInput = core.getInput('app-file', { required: true });
+        const appFilePath = core.getInput('app-file', { required: true });
         const mappingFileInput = core.getInput('mapping-file', { required: false });
         const workspaceFolder = core.getInput('workspace', { required: false });
         const mappingFile = mappingFileInput && (0, app_file_1.validateMappingFile)(mappingFileInput);
-        const appFile = yield (0, app_file_1.validateAppFile)(appFileInput);
         const branchName = getBranchName();
         const repoOwner = getRepoOwner();
         const repoName = getRepoName();
         const pullRequestId = getPullRequestId();
-        return { apiUrl, name, apiKey, appFile, mappingFile, workspaceFolder, branchName, repoOwner, repoName, pullRequestId };
+        return { apiUrl, name, apiKey, appFilePath, mappingFile, workspaceFolder, branchName, repoOwner, repoName, pullRequestId };
     });
 }
 exports.getParameters = getParameters;

@@ -1,6 +1,7 @@
 import * as core from '@actions/core'
 import { existsSync, lstatSync } from 'fs';
 import ApiClient from './ApiClient'
+import { validateAppFile } from './app_file';
 import { zipFolder, zipIfFolder } from './archive_utils';
 import { getParameters } from './params';
 
@@ -11,7 +12,7 @@ async function run() {
     apiKey,
     apiUrl,
     name,
-    appFile,
+    appFilePath,
     mappingFile,
     workspaceFolder,
     branchName,
@@ -20,6 +21,9 @@ async function run() {
     pullRequestId
   } = await getParameters()
 
+  const appFile = await validateAppFile(
+    await zipIfFolder(appFilePath)
+  );
   if (!knownAppTypes.includes(appFile.type)) {
     throw new Error(`Unsupported app file type: ${appFile.type}`)
   }
@@ -50,7 +54,7 @@ async function run() {
   }
   await client.uploadRequest(
     request,
-    await zipIfFolder(appFile.path),
+    appFile.path,
     'workspace.zip',
     mappingFile && await zipIfFolder(mappingFile),
   )

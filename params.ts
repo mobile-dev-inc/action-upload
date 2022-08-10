@@ -1,12 +1,12 @@
 import * as github from '@actions/github';
 import * as core from '@actions/core';
-import { AppFile, validateAppFile, validateMappingFile } from './app_file';
+import { AppFile, validateMappingFile } from './app_file';
 
 export type Params = {
   apiKey: string,
   apiUrl: string,
   name: string,
-  appFile: AppFile
+  appFilePath: string,
   mappingFile: string | null,
   workspaceFolder: string | null,
   branchName: string
@@ -52,14 +52,13 @@ export async function getParameters(): Promise<Params> {
   const apiUrl = 'https://api.mobile.dev'
   const name = core.getInput('name', { required: true })
   const apiKey = core.getInput('api-key', { required: true })
-  const appFileInput = core.getInput('app-file', { required: true })
+  const appFilePath = core.getInput('app-file', { required: true })
   const mappingFileInput = core.getInput('mapping-file', { required: false })
   const workspaceFolder = core.getInput('workspace', { required: false })
   const mappingFile = mappingFileInput && validateMappingFile(mappingFileInput)
-  const appFile = await validateAppFile(appFileInput)
   const branchName = getBranchName()
   const repoOwner = getRepoOwner();
   const repoName = getRepoName();
   const pullRequestId = getPullRequestId()
-  return { apiUrl, name, apiKey, appFile, mappingFile, workspaceFolder, branchName, repoOwner, repoName, pullRequestId }
+  return { apiUrl, name, apiKey, appFilePath, mappingFile, workspaceFolder, branchName, repoOwner, repoName, pullRequestId }
 }
