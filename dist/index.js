@@ -43847,25 +43847,50 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.zipIfFolder = exports.zipFolder = void 0;
+const promises_1 = __nccwpck_require__(3292);
+const path_1 = __importDefault(__nccwpck_require__(1017));
 const archiver = __nccwpck_require__(3084);
 const { createWriteStream } = __nccwpck_require__(7147);
-const zipFolder = (inputDirectory, outpuArchive) => __awaiter(void 0, void 0, void 0, function* () {
-    return new Promise((resolve, reject) => {
-        const output = createWriteStream(outpuArchive);
-        output.on('close', () => {
-            resolve(true);
+function zipFolder(inputDirectory, outpuArchive, subdirectory = false) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return new Promise((resolve, reject) => {
+            const output = createWriteStream(outpuArchive);
+            output.on('close', () => {
+                resolve(true);
+            });
+            const archive = archiver('zip');
+            archive.on('error', (err) => {
+                reject(err);
+            });
+            archive.pipe(output);
+            archive.directory(inputDirectory, subdirectory);
+            archive.finalize();
         });
-        const archive = archiver('zip');
-        archive.on('error', (err) => {
-            reject(err);
-        });
-        archive.pipe(output);
-        archive.directory(inputDirectory, false);
-        archive.finalize();
     });
-});
-exports["default"] = zipFolder;
+}
+exports.zipFolder = zipFolder;
+function zipIfFolder(inputPath) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+            const stat = yield (0, promises_1.lstat)(inputPath);
+            if (stat.isDirectory()) {
+                const basename = path_1.default.basename(inputPath);
+                const archiveName = basename + '.zip';
+                yield zipFolder(inputPath, archiveName, basename);
+                resolve(archiveName);
+            }
+            else {
+                resolve(inputPath);
+            }
+        }));
+    });
+}
+exports.zipIfFolder = zipIfFolder;
 
 
 /***/ }),
@@ -43914,7 +43939,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const fs_1 = __nccwpck_require__(7147);
 const ApiClient_1 = __importDefault(__nccwpck_require__(9494));
-const archive_utils_1 = __importDefault(__nccwpck_require__(1132));
+const archive_utils_1 = __nccwpck_require__(1132);
 const params_1 = __nccwpck_require__(805);
 const knownAppTypes = ['ANDROID_APK', 'IOS_BUNDLE'];
 function run() {
@@ -43932,9 +43957,9 @@ function run() {
             actualWorkspaceFolder = '.mobiledev';
         }
         if (!(0, fs_1.existsSync)(actualWorkspaceFolder)) {
-            throw `Workspace folder does not exist: ${workspaceFolder}`;
+            throw new Error(`Workspace folder does not exist: ${workspaceFolder}`);
         }
-        yield (0, archive_utils_1.default)(actualWorkspaceFolder, 'workspace.zip');
+        yield (0, archive_utils_1.zipFolder)(actualWorkspaceFolder, 'workspace.zip');
         const client = new ApiClient_1.default(apiKey, apiUrl);
         console.log("Uploading to mobile.dev");
         const request = {
@@ -43944,7 +43969,7 @@ function run() {
             repoName: repoName,
             pullRequestId: pullRequestId
         };
-        yield client.uploadRequest(request, appFile.path, 'workspace.zip', mappingFile);
+        yield client.uploadRequest(request, yield (0, archive_utils_1.zipIfFolder)(appFile.path), 'workspace.zip', mappingFile && (yield (0, archive_utils_1.zipIfFolder)(mappingFile)));
     });
 }
 run().catch(e => {
@@ -44094,6 +44119,14 @@ module.exports = require("events");
 
 "use strict";
 module.exports = require("fs");
+
+/***/ }),
+
+/***/ 3292:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("fs/promises");
 
 /***/ }),
 
