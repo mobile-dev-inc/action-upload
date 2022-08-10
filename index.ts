@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
-import { existsSync } from 'fs';
+import { existsSync, lstatSync } from 'fs';
 import ApiClient from './ApiClient'
-import zipFolder from './archive_utils';
+import { zipFolder, zipIfFolder } from './archive_utils';
 import { getParameters } from './params';
 
 const knownAppTypes = ['ANDROID_APK', 'IOS_BUNDLE']
@@ -33,7 +33,7 @@ async function run() {
   }
 
   if (!existsSync(actualWorkspaceFolder)) {
-    throw `Workspace folder does not exist: ${workspaceFolder}`;
+    throw new Error(`Workspace folder does not exist: ${workspaceFolder}`);
   }
 
   await zipFolder(actualWorkspaceFolder, 'workspace.zip');
@@ -50,9 +50,9 @@ async function run() {
   }
   await client.uploadRequest(
     request,
-    appFile.path,
+    await zipIfFolder(appFile.path),
     'workspace.zip',
-    mappingFile,
+    mappingFile && await zipIfFolder(mappingFile),
   )
 }
 

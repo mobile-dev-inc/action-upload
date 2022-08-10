@@ -1,7 +1,15 @@
+import { lstatSync } from "fs";
+import { lstat } from "fs/promises";
+import path from "path";
+
 const archiver = require("archiver");
 const { createWriteStream } = require("fs");
 
-const zipFolder = async (inputDirectory: string, outpuArchive: string): Promise<any> => {
+export async function zipFolder(
+    inputDirectory: string,
+    outpuArchive: string,
+    subdirectory: string | boolean = false
+): Promise<any> {
     return new Promise((resolve, reject) => {
         const output = createWriteStream(outpuArchive);
 
@@ -17,10 +25,26 @@ const zipFolder = async (inputDirectory: string, outpuArchive: string): Promise<
 
         archive.pipe(output);
 
-        archive.directory(inputDirectory, false);
+        archive.directory(inputDirectory, subdirectory);
 
         archive.finalize();
     });
 }
 
-export default zipFolder
+export async function zipIfFolder(
+    inputPath: string,
+): Promise<string> {
+    return new Promise(async (resolve, reject) => {
+        const stat = await lstat(inputPath);
+
+        if (stat.isDirectory()) {
+            const basename = path.basename(inputPath);
+            const archiveName = basename + '.zip';
+
+            await zipFolder(inputPath, archiveName, basename);
+            resolve(archiveName);
+        } else {
+            resolve(inputPath);
+        }
+    });
+}
