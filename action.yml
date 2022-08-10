@@ -13,6 +13,9 @@ inputs:
   mapping-file:
     description: 'The Proguard mapping file to upload to mobile.dev'
     required: false
+  workspace:
+    description: 'Path to a folder that contains Maestro flows (.mobiledev by default)'
+    required: false
 runs:
   using: 'node16'
   main: 'dist/index.js'
