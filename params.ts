@@ -12,7 +12,7 @@ export type Params = {
   branchName: string
   repoName: string
   repoOwner: string
-  pullRequestId?: string
+  pullRequestId?: string,
 }
 
 function getBranchName(): string {
@@ -28,7 +28,7 @@ function getBranchName(): string {
   const regex = /refs\/heads\/(.*)/
   const ref = github.context.ref
   let result = regex.exec(ref);
-  if (!result)  {
+  if (!result) {
     throw new Error(`Failed to parse GitHub ref: ${ref}`)
   }
   return result[1]
@@ -49,7 +49,7 @@ function getPullRequestId(): string | undefined {
 }
 
 export async function getParameters(): Promise<Params> {
-  const apiUrl = 'https://api.mobile.dev'
+  const apiUrl = core.getInput('api-url', { required: false }) || 'https://api.mobile.dev'
   const name = core.getInput('name', { required: true })
   const apiKey = core.getInput('api-key', { required: true })
   const appFilePath = core.getInput('app-file', { required: true })
