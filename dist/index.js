@@ -44056,7 +44056,7 @@ function getPullRequestId() {
 }
 function getParameters() {
     return __awaiter(this, void 0, void 0, function* () {
-        const apiUrl = 'https://api.mobile.dev';
+        const apiUrl = core.getInput('api-url', { required: false }) || 'https://api.mobile.dev';
         const name = core.getInput('name', { required: true });
         const apiKey = core.getInput('api-key', { required: true });
         const appFilePath = core.getInput('app-file', { required: true });
