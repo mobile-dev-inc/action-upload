@@ -1,6 +1,9 @@
 name: 'mobile.dev Upload Action'
 description: 'Upload app to mobile.dev for analysis'
 inputs:
+  api-url:
+    description: 'Alternative mobile.dev API url'
+    required: false
   api-key:
     description: 'mobile.dev API key'
     required: true
