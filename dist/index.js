@@ -44065,16 +44065,17 @@ function getParameters() {
         const workspaceFolder = core.getInput('workspace', { required: false });
         const mappingFile = mappingFileInput && (0, app_file_1.validateMappingFile)(mappingFileInput);
         var env = {};
+        var env = {};
         env = core.getMultilineInput('env', { required: false })
             .map(it => {
-            const pair = it.split("=", 1);
+            const pair = it.split("=");
             if (pair.length != 2) {
-                throw `Invalid env parameter: ${it}`;
+                throw new Error(`Invalid env parameter: ${it}`);
             }
-            return { key: it[0], value: it[1] };
+            return { key: pair[0], value: pair[1] };
         })
             .reduce((map, entry) => {
-            map[entry.key] = map[entry.value];
+            map[entry.key] = entry.value;
             return map;
         }, env);
         const branchName = getBranchName();
