@@ -43945,7 +43945,7 @@ const params_1 = __nccwpck_require__(805);
 const knownAppTypes = ['ANDROID_APK', 'IOS_BUNDLE'];
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
-        const { apiKey, apiUrl, name, appFilePath, mappingFile, workspaceFolder, branchName, repoOwner, repoName, pullRequestId } = yield (0, params_1.getParameters)();
+        const { apiKey, apiUrl, name, appFilePath, mappingFile, workspaceFolder, branchName, repoOwner, repoName, pullRequestId, env } = yield (0, params_1.getParameters)();
         const appFile = yield (0, app_file_1.validateAppFile)(yield (0, archive_utils_1.zipIfFolder)(appFilePath));
         if (!knownAppTypes.includes(appFile.type)) {
             throw new Error(`Unsupported app file type: ${appFile.type}`);
@@ -43969,7 +43969,8 @@ function run() {
             branch: branchName,
             repoOwner: repoOwner,
             repoName: repoName,
-            pullRequestId: pullRequestId
+            pullRequestId: pullRequestId,
+            env: env
         };
         yield client.uploadRequest(request, appFile.path, 'workspace.zip', mappingFile && (yield (0, archive_utils_1.zipIfFolder)(mappingFile)));
     });
@@ -44063,11 +44064,24 @@ function getParameters() {
         const mappingFileInput = core.getInput('mapping-file', { required: false });
         const workspaceFolder = core.getInput('workspace', { required: false });
         const mappingFile = mappingFileInput && (0, app_file_1.validateMappingFile)(mappingFileInput);
+        var env = {};
+        env = core.getMultilineInput('env', { required: false })
+            .map(it => {
+            const pair = it.split("=", 1);
+            if (pair.length != 2) {
+                throw `Invalid env parameter: ${it}`;
+            }
+            return { key: it[0], value: it[1] };
+        })
+            .reduce((map, entry) => {
+            map[entry.key] = map[entry.value];
+            return map;
+        }, env);
         const branchName = getBranchName();
         const repoOwner = getRepoOwner();
         const repoName = getRepoName();
         const pullRequestId = getPullRequestId();
-        return { apiUrl, name, apiKey, appFilePath, mappingFile, workspaceFolder, branchName, repoOwner, repoName, pullRequestId };
+        return { apiUrl, name, apiKey, appFilePath, mappingFile, workspaceFolder, branchName, repoOwner, repoName, pullRequestId, env };
     });
 }
 exports.getParameters = getParameters;
