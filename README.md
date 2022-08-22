@@ -60,7 +60,7 @@ Include the Proguard mapping file to deobfuscate Android performance traces:
 # iOS
 
 ```yaml
-- uses: mobile-dev-inc/action-upload@v2.0.0
+- uses: mobile-dev-inc/action-upload@v2.1.0
   with:
     api-key: ${{ secrets.MOBILE_DEV_API_KEY }}
     name: ${{ github.sha }}
