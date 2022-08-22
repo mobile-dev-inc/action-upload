@@ -13,6 +13,7 @@ export type Params = {
   repoName: string
   repoOwner: string
   pullRequestId?: string,
+  env?: { [key:string]: string },
 }
 
 function getBranchName(): string {
@@ -56,9 +57,26 @@ export async function getParameters(): Promise<Params> {
   const mappingFileInput = core.getInput('mapping-file', { required: false })
   const workspaceFolder = core.getInput('workspace', { required: false })
   const mappingFile = mappingFileInput && validateMappingFile(mappingFileInput)
+
+  var env: { [key:string]:string } = {}
+  env = core.getMultilineInput('env', { required: false })
+    .map(it => {
+      const pair = it.split("=", 1)
+
+      if (pair.length != 2) {
+        throw `Invalid env parameter: ${it}`
+      }
+
+      return { key: it[0], value: it[1] }
+    })
+    .reduce((map, entry) => {
+      map[entry.key] = map[entry.value]
+      return map
+    }, env)
+
   const branchName = getBranchName()
   const repoOwner = getRepoOwner();
   const repoName = getRepoName();
   const pullRequestId = getPullRequestId()
-  return { apiUrl, name, apiKey, appFilePath, mappingFile, workspaceFolder, branchName, repoOwner, repoName, pullRequestId }
+  return { apiUrl, name, apiKey, appFilePath, mappingFile, workspaceFolder, branchName, repoOwner, repoName, pullRequestId, env }
 }

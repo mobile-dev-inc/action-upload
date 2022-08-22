@@ -18,7 +18,8 @@ async function run() {
     branchName,
     repoOwner,
     repoName,
-    pullRequestId
+    pullRequestId,
+    env
   } = await getParameters()
 
   const appFile = await validateAppFile(
@@ -50,7 +51,8 @@ async function run() {
     branch: branchName,
     repoOwner: repoOwner,
     repoName: repoName,
-    pullRequestId: pullRequestId
+    pullRequestId: pullRequestId,
+    env: env
   }
   await client.uploadRequest(
     request,

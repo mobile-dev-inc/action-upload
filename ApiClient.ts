@@ -5,7 +5,8 @@ export type UploadRequest = {
   repoOwner?: string
   repoName?: string
   pullRequestId?: string
-  branch?: string
+  branch?: string,
+  env?: { [key:string]:string }
 }
 
 export default class ApiClient {
