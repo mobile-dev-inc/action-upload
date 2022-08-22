@@ -59,20 +59,21 @@ export async function getParameters(): Promise<Params> {
   const mappingFile = mappingFileInput && validateMappingFile(mappingFileInput)
 
   var env: { [key:string]:string } = {}
+  var env: { [key:string]:string } = {}
   env = core.getMultilineInput('env', { required: false })
-    .map(it => {
-      const pair = it.split("=", 1)
-
-      if (pair.length != 2) {
-        throw `Invalid env parameter: ${it}`
-      }
-
-      return { key: it[0], value: it[1] }
-    })
-    .reduce((map, entry) => {
-      map[entry.key] = map[entry.value]
-      return map
-    }, env)
+      .map(it => {
+          const pair = it.split("=")
+  
+          if (pair.length != 2) {
+              throw new Error(`Invalid env parameter: ${it}`)
+          }
+  
+          return { key: pair[0], value: pair[1] }
+      })
+      .reduce((map, entry) => {
+          map[entry.key] = entry.value
+          return map
+      }, env)
 
   const branchName = getBranchName()
   const repoOwner = getRepoOwner();
