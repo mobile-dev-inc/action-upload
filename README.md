@@ -65,9 +65,12 @@ Include the Proguard mapping file to deobfuscate Android performance traces:
     api-key: ${{ secrets.MOBILE_DEV_API_KEY }}
     name: ${{ github.sha }}
     app-file: app.zip
+    mapping-file: app.dSYM.zip
 ```
 
 `app-file` should point to an x86 compatible Simulator build packaged in a `zip` archive
+
+`mapping-file` should point to generated .dSYM file (unique per build). more info [here](https://developer.apple.com/documentation/xcode/building-your-app-to-include-debugging-information). 
 
 # Custom workspace location
 
