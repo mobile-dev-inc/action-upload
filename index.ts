@@ -1,5 +1,4 @@
 import * as core from '@actions/core'
-import { existsSync, lstatSync } from 'fs';
 import ApiClient from './ApiClient'
 import { validateAppFile } from './app_file';
 import { zipFolder, zipIfFolder } from './archive_utils';
