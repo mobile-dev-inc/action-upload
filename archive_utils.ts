@@ -1,4 +1,4 @@
-import { lstatSync } from "fs";
+import { existsSync, lstatSync } from "fs";
 import { lstat } from "fs/promises";
 import path from "path";
 
@@ -7,11 +7,11 @@ const { createWriteStream } = require("fs");
 
 export async function zipFolder(
     inputDirectory: string,
-    outpuArchive: string,
+    outputArchive: string,
     subdirectory: string | boolean = false
 ): Promise<any> {
     return new Promise((resolve, reject) => {
-        const output = createWriteStream(outpuArchive);
+        const output = createWriteStream(outputArchive);
 
         output.on('close', () => {
             resolve(true)
@@ -25,7 +25,9 @@ export async function zipFolder(
 
         archive.pipe(output);
 
-        archive.directory(inputDirectory, subdirectory);
+        if (existsSync(inputDirectory)) {
+            archive.directory(inputDirectory, subdirectory);
+        }
 
         archive.finalize();
     });

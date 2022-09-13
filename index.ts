@@ -37,10 +37,6 @@ async function run() {
     actualWorkspaceFolder = '.mobiledev';
   }
 
-  if (!existsSync(actualWorkspaceFolder)) {
-    throw new Error(`Workspace folder does not exist: ${workspaceFolder}`);
-  }
-
   await zipFolder(actualWorkspaceFolder, 'workspace.zip');
 
   const client = new ApiClient(apiKey, apiUrl)
