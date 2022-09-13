@@ -67,7 +67,7 @@ Include the Proguard mapping file to deobfuscate Android performance traces:
     app-file: app.zip
 ```
 
-`app-file` should point to an x86 compatible Simulator build packaged in a `zip` archive
+`app-file` should point to an x86 compatible Simulator build packaged in a `zip` archive or an iOS `.app` file
 
 # Custom workspace location
 
