@@ -35,7 +35,7 @@ jobs:
 # Android
 
 ```yaml
-- uses: mobile-dev-inc/action-upload@v2.1.0
+- uses: mobile-dev-inc/action-upload@v2.3.0
   with:
     api-key: ${{ secrets.MOBILE_DEV_API_KEY }}
     name: ${{ github.sha }}
@@ -49,7 +49,7 @@ jobs:
 Include the Proguard mapping file to deobfuscate Android performance traces:
 
 ```yaml
-- uses: mobile-dev-inc/action-upload@v2.1.0
+- uses: mobile-dev-inc/action-upload@v2.3.0
   with:
     api-key: ${{ secrets.MOBILE_DEV_API_KEY }}
     name: ${{ github.sha }}
@@ -60,7 +60,7 @@ Include the Proguard mapping file to deobfuscate Android performance traces:
 # iOS
 
 ```yaml
-- uses: mobile-dev-inc/action-upload@v2.1.0
+- uses: mobile-dev-inc/action-upload@v2.3.0
   with:
     api-key: ${{ secrets.MOBILE_DEV_API_KEY }}
     name: ${{ github.sha }}
@@ -74,7 +74,7 @@ Include the Proguard mapping file to deobfuscate Android performance traces:
 By default, the action is looking for a `.mobiledev` folder with Maestro flows in the root directory of the project. If you would like to customize this behaviour, you can override it with a `workspace` argument:
 
 ```yaml
-- uses: mobile-dev-inc/action-upload@v2.1.0
+- uses: mobile-dev-inc/action-upload@v2.3.0
   with:
     api-key: ${{ secrets.MOBILE_DEV_API_KEY }}
     name: ${{ github.sha }}
