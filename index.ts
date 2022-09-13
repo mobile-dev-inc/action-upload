@@ -3,8 +3,21 @@ import ApiClient from './ApiClient'
 import { validateAppFile } from './app_file';
 import { zipFolder, zipIfFolder } from './archive_utils';
 import { getParameters } from './params';
+import { existsSync } from 'fs';
 
 const knownAppTypes = ['ANDROID_APK', 'IOS_BUNDLE']
+
+async function createWorkspaceZip(workspaceFolder: string | null): Promise<string | null> {
+  const resolvedWorkspaceFolder = workspaceFolder || '.mobiledev'
+  if (!existsSync(resolvedWorkspaceFolder)) {
+    console.log(`Workspace directory does not exist: ${resolvedWorkspaceFolder}`)
+    return null
+  }
+  console.log("Packaging .mobiledev folder")
+  await zipFolder(resolvedWorkspaceFolder, 'workspace.zip');
+  return 'workspace.zip'
+}
+
 
 async function run() {
   const {
@@ -28,15 +41,7 @@ async function run() {
     throw new Error(`Unsupported app file type: ${appFile.type}`)
   }
 
-  console.log("Packaging .mobiledev folder")
-  var actualWorkspaceFolder;
-  if (workspaceFolder) {
-    actualWorkspaceFolder = workspaceFolder;
-  } else {
-    actualWorkspaceFolder = '.mobiledev';
-  }
-
-  await zipFolder(actualWorkspaceFolder, 'workspace.zip');
+  const workspaceZip = await createWorkspaceZip(workspaceFolder)
 
   const client = new ApiClient(apiKey, apiUrl)
 
@@ -52,7 +57,7 @@ async function run() {
   await client.uploadRequest(
     request,
     appFile.path,
-    'workspace.zip',
+    workspaceZip,
     mappingFile && await zipIfFolder(mappingFile),
   )
 }

@@ -1,4 +1,4 @@
-import fetch, { Blob, BodyInit, fileFromSync, FormData } from 'node-fetch';
+import fetch, { fileFromSync, FormData } from 'node-fetch';
 
 export type UploadRequest = {
   benchmarkName: string
@@ -19,7 +19,7 @@ export default class ApiClient {
   async uploadRequest(
     request: UploadRequest,
     appFile: string,
-    workspaceFile: string,
+    workspaceZip: string | null,
     mappingFile: string | null,
   ): Promise<any> {
     const formData = new FormData()
@@ -29,11 +29,14 @@ export default class ApiClient {
       'app_binary', 
       fileFromSync(appFile)
     )
-    formData.set(
-      'workspace',
-      fileFromSync(workspaceFile)
-    )
-    
+
+    if (workspaceZip) {
+      formData.set(
+        'workspace',
+        fileFromSync(workspaceZip)
+      );
+    }
+
     if (mappingFile) {
       formData.set(
         'mapping',
