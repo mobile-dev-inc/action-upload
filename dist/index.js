@@ -43726,12 +43726,14 @@ class ApiClient {
         this.apiKey = apiKey;
         this.apiUrl = apiUrl;
     }
-    uploadRequest(request, appFile, workspaceFile, mappingFile) {
+    uploadRequest(request, appFile, workspaceZip, mappingFile) {
         return __awaiter(this, void 0, void 0, function* () {
             const formData = new node_fetch_1.FormData();
             formData.set('request', JSON.stringify(request));
             formData.set('app_binary', (0, node_fetch_1.fileFromSync)(appFile));
-            formData.set('workspace', (0, node_fetch_1.fileFromSync)(workspaceFile));
+            if (workspaceZip) {
+                formData.set('workspace', (0, node_fetch_1.fileFromSync)(workspaceZip));
+            }
             if (mappingFile) {
                 formData.set('mapping', (0, node_fetch_1.fileFromSync)(mappingFile));
             }
@@ -43944,7 +43946,20 @@ const ApiClient_1 = __importDefault(__nccwpck_require__(9494));
 const app_file_1 = __nccwpck_require__(9617);
 const archive_utils_1 = __nccwpck_require__(1132);
 const params_1 = __nccwpck_require__(805);
+const fs_1 = __nccwpck_require__(7147);
 const knownAppTypes = ['ANDROID_APK', 'IOS_BUNDLE'];
+function createWorkspaceZip(workspaceFolder) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const resolvedWorkspaceFolder = workspaceFolder || '.mobiledev';
+        if (!(0, fs_1.existsSync)(resolvedWorkspaceFolder)) {
+            console.log(`Workspace directory does not exist: ${resolvedWorkspaceFolder}`);
+            return null;
+        }
+        console.log("Packaging .mobiledev folder");
+        yield (0, archive_utils_1.zipFolder)(resolvedWorkspaceFolder, 'workspace.zip');
+        return 'workspace.zip';
+    });
+}
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         const { apiKey, apiUrl, name, appFilePath, mappingFile, workspaceFolder, branchName, repoOwner, repoName, pullRequestId, env } = yield (0, params_1.getParameters)();
@@ -43952,15 +43967,7 @@ function run() {
         if (!knownAppTypes.includes(appFile.type)) {
             throw new Error(`Unsupported app file type: ${appFile.type}`);
         }
-        console.log("Packaging .mobiledev folder");
-        var actualWorkspaceFolder;
-        if (workspaceFolder) {
-            actualWorkspaceFolder = workspaceFolder;
-        }
-        else {
-            actualWorkspaceFolder = '.mobiledev';
-        }
-        yield (0, archive_utils_1.zipFolder)(actualWorkspaceFolder, 'workspace.zip');
+        const workspaceZip = yield createWorkspaceZip(workspaceFolder);
         const client = new ApiClient_1.default(apiKey, apiUrl);
         console.log("Uploading to mobile.dev");
         const request = {
@@ -43971,7 +43978,7 @@ function run() {
             pullRequestId: pullRequestId,
             env: env
         };
-        yield client.uploadRequest(request, appFile.path, 'workspace.zip', mappingFile && (yield (0, archive_utils_1.zipIfFolder)(mappingFile)));
+        yield client.uploadRequest(request, appFile.path, workspaceZip, mappingFile && (yield (0, archive_utils_1.zipIfFolder)(mappingFile)));
     });
 }
 run().catch(e => {
