@@ -64,8 +64,8 @@ Include the Proguard mapping file to deobfuscate Android performance traces:
   with:
     api-key: ${{ secrets.MOBILE_DEV_API_KEY }}
     name: ${{ github.sha }}
-    app-file: app.zip
-    mapping-file: app.dSYM.zip
+    app-file: <app_name>.app
+    mapping-file: <app_name>.app.dSYM
 ```
 
 `app-file` should point to an x86 compatible Simulator build packaged in a `zip` archive
