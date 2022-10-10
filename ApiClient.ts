@@ -1,12 +1,12 @@
 import fetch, { fileFromSync, FormData } from 'node-fetch';
 
 export type UploadRequest = {
-  benchmarkName: string
+  benchmarkName?: string
   repoOwner?: string
   repoName?: string
   pullRequestId?: string
   branch?: string,
-  env?: { [key:string]:string }
+  env?: { [key: string]: string }
 }
 
 export default class ApiClient {
@@ -26,7 +26,7 @@ export default class ApiClient {
 
     formData.set('request', JSON.stringify(request))
     formData.set(
-      'app_binary', 
+      'app_binary',
       fileFromSync(appFile)
     )
 

@@ -38,8 +38,9 @@ jobs:
 - uses: mobile-dev-inc/action-upload@v2.3.0
   with:
     api-key: ${{ secrets.MOBILE_DEV_API_KEY }}
-    name: ${{ github.sha }}
     app-file: app/build/outputs/apk/debug/app-debug.apk
+    # `name` is optional
+    name: ${{ github.sha }} 
 ```
 
 `app-file` should point to an x86 compatible APK file
@@ -52,9 +53,10 @@ Include the Proguard mapping file to deobfuscate Android performance traces:
 - uses: mobile-dev-inc/action-upload@v2.3.0
   with:
     api-key: ${{ secrets.MOBILE_DEV_API_KEY }}
-    name: ${{ github.sha }}
     app-file: app/build/outputs/apk/release/app-release.apk
     mapping-file: app/build/outputs/mapping/release/mapping.txt
+    # `name` is optional
+    name: ${{ github.sha }} 
 ```
 
 # iOS
@@ -63,9 +65,10 @@ Include the Proguard mapping file to deobfuscate Android performance traces:
 - uses: mobile-dev-inc/action-upload@v2.3.0
   with:
     api-key: ${{ secrets.MOBILE_DEV_API_KEY }}
-    name: ${{ github.sha }}
     app-file: <app_name>.app
     mapping-file: <app_name>.app.dSYM
+    # `name` is optional
+    name: ${{ github.sha }} 
 ```
 
 `app-file` should point to an x86 compatible Simulator build packaged in a `zip` archive
@@ -80,7 +83,8 @@ By default, the action is looking for a `.mobiledev` folder with Maestro flows i
 - uses: mobile-dev-inc/action-upload@v2.3.0
   with:
     api-key: ${{ secrets.MOBILE_DEV_API_KEY }}
-    name: ${{ github.sha }}
     app-file: app.zip
     workspace: myApp/.mobiledev
+    # `name` is optional
+    name: ${{ github.sha }} 
 ```
