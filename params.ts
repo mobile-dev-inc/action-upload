@@ -13,7 +13,7 @@ export type Params = {
   repoName: string
   repoOwner: string
   pullRequestId?: string,
-  env?: { [key:string]: string },
+  env?: { [key: string]: string },
 }
 
 function getBranchName(): string {
@@ -51,29 +51,29 @@ function getPullRequestId(): string | undefined {
 
 export async function getParameters(): Promise<Params> {
   const apiUrl = core.getInput('api-url', { required: false }) || 'https://api.mobile.dev'
-  const name = core.getInput('name', { required: true })
+  const name = core.getInput('name', { required: false })
   const apiKey = core.getInput('api-key', { required: true })
   const appFilePath = core.getInput('app-file', { required: true })
   const mappingFileInput = core.getInput('mapping-file', { required: false })
   const workspaceFolder = core.getInput('workspace', { required: false })
   const mappingFile = mappingFileInput && validateMappingFile(mappingFileInput)
 
-  var env: { [key:string]:string } = {}
-  var env: { [key:string]:string } = {}
+  var env: { [key: string]: string } = {}
+  var env: { [key: string]: string } = {}
   env = core.getMultilineInput('env', { required: false })
-      .map(it => {
-          const pair = it.split("=")
-  
-          if (pair.length != 2) {
-              throw new Error(`Invalid env parameter: ${it}`)
-          }
-  
-          return { key: pair[0], value: pair[1] }
-      })
-      .reduce((map, entry) => {
-          map[entry.key] = entry.value
-          return map
-      }, env)
+    .map(it => {
+      const pair = it.split("=")
+
+      if (pair.length != 2) {
+        throw new Error(`Invalid env parameter: ${it}`)
+      }
+
+      return { key: pair[0], value: pair[1] }
+    })
+    .reduce((map, entry) => {
+      map[entry.key] = entry.value
+      return map
+    }, env)
 
   const branchName = getBranchName()
   const repoOwner = getRepoOwner();

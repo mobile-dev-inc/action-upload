@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import ApiClient from './ApiClient'
+import ApiClient, { UploadRequest } from './ApiClient'
 import { validateAppFile } from './app_file';
 import { zipFolder, zipIfFolder } from './archive_utils';
 import { getParameters } from './params';
@@ -46,7 +46,7 @@ async function run() {
   const client = new ApiClient(apiKey, apiUrl)
 
   console.log("Uploading to mobile.dev")
-  const request = {
+  const request: UploadRequest = {
     benchmarkName: name,
     branch: branchName,
     repoOwner: repoOwner,
@@ -54,6 +54,7 @@ async function run() {
     pullRequestId: pullRequestId,
     env: env
   }
+
   await client.uploadRequest(
     request,
     appFile.path,
