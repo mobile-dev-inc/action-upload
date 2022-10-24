@@ -1,6 +1,8 @@
 import * as github from '@actions/github';
 import * as core from '@actions/core';
 import { AppFile, validateMappingFile } from './app_file';
+import { PushEvent } from '@octokit/webhooks-definitions/schema'
+
 
 export type Params = {
   apiKey: string,
@@ -49,9 +51,28 @@ function getPullRequestId(): string | undefined {
   return `${pullRequestId}`
 }
 
+function getPullRequestTitle(): string | undefined {
+  const pullRequestTitle = github.context.payload.pull_request?.title
+  if (pullRequestTitle === undefined) return undefined
+  return `${pullRequestTitle}`
+}
+
+function getInferredName(): string {
+  const pullRequestTitle = getPullRequestTitle()
+  if (pullRequestTitle) return pullRequestTitle;
+
+  if (github.context.eventName === 'push') {
+    const pushPayload = github.context.payload as PushEvent
+    const commitMessage = pushPayload.head_commit?.message;
+    if (commitMessage) return commitMessage
+  }
+
+  return github.context.sha
+}
+
 export async function getParameters(): Promise<Params> {
   const apiUrl = core.getInput('api-url', { required: false }) || 'https://api.mobile.dev'
-  const name = core.getInput('name', { required: false })
+  const name = core.getInput('name', { required: false }) || getInferredName()
   const apiKey = core.getInput('api-key', { required: true })
   const appFilePath = core.getInput('app-file', { required: true })
   const mappingFileInput = core.getInput('mapping-file', { required: false })
