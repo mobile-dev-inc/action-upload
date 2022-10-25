@@ -39,7 +39,7 @@ jobs:
   with:
     api-key: ${{ secrets.MOBILE_DEV_API_KEY }}
     app-file: app/build/outputs/apk/debug/app-debug.apk
-    # `name` is optional, it is set to github.sha by default
+    # [optional] Specify name if you want to override the default name which is either PR title, commit message or sha
     name: ${{ github.sha }} 
 ```
 
@@ -55,7 +55,7 @@ Include the Proguard mapping file to deobfuscate Android performance traces:
     api-key: ${{ secrets.MOBILE_DEV_API_KEY }}
     app-file: app/build/outputs/apk/release/app-release.apk
     mapping-file: app/build/outputs/mapping/release/mapping.txt
-    # `name` is optional, it is set to github.sha by default
+    # [optional] Specify name if you want to override the default name which is either PR title, commit message or sha
     name: ${{ github.sha }} 
 ```
 
@@ -67,7 +67,7 @@ Include the Proguard mapping file to deobfuscate Android performance traces:
     api-key: ${{ secrets.MOBILE_DEV_API_KEY }}
     app-file: <app_name>.app
     mapping-file: <app_name>.app.dSYM
-    # `name` is optional, it is set to github.sha by default
+    # [optional] Specify name if you want to override the default name which is either PR title, commit message or sha    
     name: ${{ github.sha }} 
 ```
 
@@ -85,6 +85,6 @@ By default, the action is looking for a `.mobiledev` folder with Maestro flows i
     api-key: ${{ secrets.MOBILE_DEV_API_KEY }}
     app-file: app.zip
     workspace: myApp/.mobiledev
-    # `name` is optional, it is set to github.sha by default    
+    # [optional] Specify name if you want to override the default name which is either PR title, commit message or sha
     name: ${{ github.sha }} 
 ```
