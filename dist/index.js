@@ -44854,7 +44854,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.UploadStatusError = exports.BenchmarkStatus = void 0;
 const node_fetch_1 = __importStar(__nccwpck_require__(4429));
+var BenchmarkStatus;
+(function (BenchmarkStatus) {
+    BenchmarkStatus["PENDING"] = "PENDING";
+    BenchmarkStatus["RUNNING"] = "RUNNING";
+    BenchmarkStatus["SUCCESS"] = "SUCCESS";
+    BenchmarkStatus["ERROR"] = "ERROR";
+    BenchmarkStatus["CANCELED"] = "CANCELED";
+    BenchmarkStatus["WARNING"] = "WARNING";
+})(BenchmarkStatus = exports.BenchmarkStatus || (exports.BenchmarkStatus = {}));
+class UploadStatusError {
+    constructor(status, text) {
+        this.status = status;
+        this.text = text;
+    }
+}
+exports.UploadStatusError = UploadStatusError;
 class ApiClient {
     constructor(apiKey, apiUrl) {
         this.apiKey = apiKey;
@@ -44885,8 +44902,144 @@ class ApiClient {
             return yield res.json();
         });
     }
+    getUploadStatus(uploadId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const res = yield (0, node_fetch_1.default)(`${this.apiUrl}/v2/upload/${uploadId}/status`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${this.apiKey}`,
+                },
+            });
+            if (!res.ok) {
+                const body = yield res.text();
+                throw new Error(`Request to ${res.url} failed (${res.status}): ${body}`);
+            }
+            if (res.status >= 400) {
+                const text = yield res.text();
+                Promise.reject(new UploadStatusError(res.status, text));
+            }
+            return yield res.json();
+        });
+    }
 }
 exports["default"] = ApiClient;
+
+
+/***/ }),
+
+/***/ 2575:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __importStar(__nccwpck_require__(2186));
+const ApiClient_1 = __nccwpck_require__(9494);
+const WAIT_TIMEOUT_MS = 1000 * 60 * 30; // 30 minutes
+const INTERVAL_MS = 10000; // 10 seconds
+class StatusPoller {
+    constructor(client, uploadId, viewUploadInConsoleStr) {
+        this.client = client;
+        this.uploadId = uploadId;
+        this.viewUploadInConsoleStr = viewUploadInConsoleStr;
+    }
+    markFailed(msg) {
+        core.setFailed(msg);
+    }
+    poll(sleep, prevErrorCount = 0) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { completed, status } = yield this.client.getUploadStatus(this.uploadId);
+                if (completed) {
+                    this.teardown();
+                    if (status === ApiClient_1.BenchmarkStatus.ERROR) {
+                        this.markFailed(`Upload failed. ${this.viewUploadInConsoleStr}`);
+                    }
+                    else {
+                        console.log(`Upload completed! ${this.viewUploadInConsoleStr}`);
+                    }
+                }
+                else {
+                    console.log(`Upload is ${status.toLowerCase()}, continuing to wait`);
+                    setTimeout(() => this.poll(sleep), sleep);
+                }
+            }
+            catch (error) {
+                if (error instanceof ApiClient_1.UploadStatusError) {
+                    if (error.status === 429) {
+                        // back off through extending sleep duration with 25%
+                        const newSleep = sleep * 1.25;
+                        setTimeout(() => this.poll(newSleep, prevErrorCount), newSleep);
+                    }
+                    else if (error.status >= 500) {
+                        if (prevErrorCount < 3) {
+                            setTimeout(() => this.poll(sleep, prevErrorCount++), sleep);
+                        }
+                        else {
+                            this.markFailed(`Request to get status information failed with status code ${error.status}: ${error.text}`);
+                        }
+                    }
+                    else {
+                        this.markFailed(`Could not get Upload status. Received error ${error}. ${this.viewUploadInConsoleStr}`);
+                    }
+                }
+                else {
+                    this.markFailed(`Could not get Upload status. Received error ${error}. ${this.viewUploadInConsoleStr}`);
+                }
+            }
+        });
+    }
+    registerTimeout() {
+        this.timeout = setTimeout(() => {
+            this.markFailed(`Timed out waiting for Upload to complete. ${this.viewUploadInConsoleStr}`);
+        }, WAIT_TIMEOUT_MS);
+    }
+    teardown() {
+        this.timeout && clearTimeout(this.timeout);
+    }
+    startPolling() {
+        try {
+            this.poll(INTERVAL_MS);
+        }
+        catch (err) {
+            this.markFailed(err instanceof Error ? err.message : `${err}`);
+        }
+        this.registerTimeout();
+    }
+}
+exports["default"] = StatusPoller;
 
 
 /***/ }),
@@ -45075,12 +45228,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getViewUploadInConsoleStr = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const ApiClient_1 = __importDefault(__nccwpck_require__(9494));
 const app_file_1 = __nccwpck_require__(9617);
 const archive_utils_1 = __nccwpck_require__(1132);
 const params_1 = __nccwpck_require__(805);
 const fs_1 = __nccwpck_require__(7147);
+const StatusPoller_1 = __importDefault(__nccwpck_require__(2575));
 const knownAppTypes = ['ANDROID_APK', 'IOS_BUNDLE'];
 function createWorkspaceZip(workspaceFolder) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -45094,9 +45249,13 @@ function createWorkspaceZip(workspaceFolder) {
         return 'workspace.zip';
     });
 }
+function getViewUploadInConsoleStr(uploadId, teamId, appId) {
+    return `Visit the web console for more details about the upload: https://console.mobile.dev/uploads/${uploadId}?teamId=${teamId}&appId=${appId}`;
+}
+exports.getViewUploadInConsoleStr = getViewUploadInConsoleStr;
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
-        const { apiKey, apiUrl, name, appFilePath, mappingFile, workspaceFolder, branchName, repoOwner, repoName, pullRequestId, env } = yield (0, params_1.getParameters)();
+        const { apiKey, apiUrl, name, appFilePath, mappingFile, workspaceFolder, branchName, repoOwner, repoName, pullRequestId, env, async } = yield (0, params_1.getParameters)();
         const appFile = yield (0, app_file_1.validateAppFile)(yield (0, archive_utils_1.zipIfFolder)(appFilePath));
         if (!knownAppTypes.includes(appFile.type)) {
             throw new Error(`Unsupported app file type: ${appFile.type}`);
@@ -45112,7 +45271,10 @@ function run() {
             pullRequestId: pullRequestId,
             env: env
         };
-        yield client.uploadRequest(request, appFile.path, workspaceZip, mappingFile && (yield (0, archive_utils_1.zipIfFolder)(mappingFile)));
+        const { uploadId, teamId, targetId: appId } = yield client.uploadRequest(request, appFile.path, workspaceZip, mappingFile && (yield (0, archive_utils_1.zipIfFolder)(mappingFile)));
+        const viewUploadStr = getViewUploadInConsoleStr(uploadId, teamId, appId);
+        console.log(viewUploadStr);
+        !async && new StatusPoller_1.default(client, uploadId, viewUploadStr).startPolling();
     });
 }
 run().catch(e => {
@@ -45224,7 +45386,7 @@ function getParameters() {
         const mappingFileInput = core.getInput('mapping-file', { required: false });
         const workspaceFolder = core.getInput('workspace', { required: false });
         const mappingFile = mappingFileInput && (0, app_file_1.validateMappingFile)(mappingFileInput);
-        var env = {};
+        const async = core.getInput('async', { required: false }) === 'true';
         var env = {};
         env = core.getMultilineInput('env', { required: false })
             .map(it => {
@@ -45242,7 +45404,7 @@ function getParameters() {
         const repoOwner = getRepoOwner();
         const repoName = getRepoName();
         const pullRequestId = getPullRequestId();
-        return { apiUrl, name, apiKey, appFilePath, mappingFile, workspaceFolder, branchName, repoOwner, repoName, pullRequestId, env };
+        return { apiUrl, name, apiKey, appFilePath, mappingFile, workspaceFolder, branchName, repoOwner, repoName, pullRequestId, env, async };
     });
 }
 exports.getParameters = getParameters;
