@@ -1,4 +1,13 @@
-import fetch, { fileFromSync, FormData } from 'node-fetch';
+import fetch, { FetchError, fileFromSync, FormData } from 'node-fetch';
+
+export enum BenchmarkStatus {
+  PENDING = 'PENDING',
+  RUNNING = 'RUNNING',
+  SUCCESS = 'SUCCESS',
+  ERROR = 'ERROR',
+  CANCELED = 'CANCELED',
+  WARNING = 'WARNING',
+}
 
 export type UploadRequest = {
   benchmarkName?: string
@@ -7,6 +16,23 @@ export type UploadRequest = {
   pullRequestId?: string
   branch?: string,
   env?: { [key: string]: string }
+}
+
+// irrelevant data has been factored out from this model
+export type UploadResponse = {
+  uploadId: string,
+  teamId: string,
+  targetId: string
+}
+
+export class UploadStatusError {
+  constructor(public status: number, public text: string) { }
+}
+
+export type UploadStatusResponse = {
+  uploadId: string,
+  status: string,
+  completed: boolean,
 }
 
 export default class ApiClient {
@@ -21,7 +47,7 @@ export default class ApiClient {
     appFile: string,
     workspaceZip: string | null,
     mappingFile: string | null,
-  ): Promise<any> {
+  ): Promise<UploadResponse> {
     const formData = new FormData()
 
     formData.set('request', JSON.stringify(request))
@@ -55,6 +81,28 @@ export default class ApiClient {
       const body = await res.text();
       throw new Error(`Request to ${res.url} failed (${res.status}): ${body}`);
     }
-    return await res.json();
+    return await res.json() as UploadResponse;
+  }
+
+  async getUploadStatus(
+    uploadId: string,
+  ): Promise<UploadStatusResponse> {
+    const res = await fetch(`${this.apiUrl}/v2/upload/${uploadId}/status`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${this.apiKey}`,
+      },
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Request to ${res.url} failed (${res.status}): ${body}`);
+    }
+
+    if (res.status >= 400) {
+      const text = await res.text();
+      Promise.reject(new UploadStatusError(res.status, text));
+    }
+
+    return await res.json() as UploadStatusResponse;
   }
 }

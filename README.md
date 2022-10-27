@@ -35,12 +35,10 @@ jobs:
 # Android
 
 ```yaml
-- uses: mobile-dev-inc/action-upload@v2.3.1
+- uses: mobile-dev-inc/action-upload@v3.0.0
   with:
     api-key: ${{ secrets.MOBILE_DEV_API_KEY }}
     app-file: app/build/outputs/apk/debug/app-debug.apk
-    # [optional] Specify name if you want to override the default name which is either PR title, commit message or sha
-    name: ${{ github.sha }} 
 ```
 
 `app-file` should point to an x86 compatible APK file
@@ -50,25 +48,21 @@ jobs:
 Include the Proguard mapping file to deobfuscate Android performance traces:
 
 ```yaml
-- uses: mobile-dev-inc/action-upload@v2.3.1
+- uses: mobile-dev-inc/action-upload@v3.0.0
   with:
     api-key: ${{ secrets.MOBILE_DEV_API_KEY }}
     app-file: app/build/outputs/apk/release/app-release.apk
     mapping-file: app/build/outputs/mapping/release/mapping.txt
-    # [optional] Specify name if you want to override the default name which is either PR title, commit message or sha
-    name: ${{ github.sha }} 
 ```
 
 # iOS
 
 ```yaml
-- uses: mobile-dev-inc/action-upload@v2.3.1
+- uses: mobile-dev-inc/action-upload@v3.0.0
   with:
     api-key: ${{ secrets.MOBILE_DEV_API_KEY }}
     app-file: <app_name>.app
     mapping-file: <app_name>.app.dSYM
-    # [optional] Specify name if you want to override the default name which is either PR title, commit message or sha    
-    name: ${{ github.sha }} 
 ```
 
 `app-file` should point to an x86 compatible Simulator build packaged in a `zip` archive
@@ -80,11 +74,38 @@ Include the Proguard mapping file to deobfuscate Android performance traces:
 By default, the action is looking for a `.mobiledev` folder with Maestro flows in the root directory of the project. If you would like to customize this behaviour, you can override it with a `workspace` argument:
 
 ```yaml
-- uses: mobile-dev-inc/action-upload@v2.3.1
+- uses: mobile-dev-inc/action-upload@v3.0.0
   with:
     api-key: ${{ secrets.MOBILE_DEV_API_KEY }}
     app-file: app.zip
     workspace: myApp/.mobiledev
-    # [optional] Specify name if you want to override the default name which is either PR title, commit message or sha
-    name: ${{ github.sha }} 
+```
+
+# Custom name
+A name will automatically be provided according to the following order:
+1. If it is a Pull Request, use Pull Request title as name
+2. If it is a normal push, use commit message as name
+3. If for some reason the commit message is not available, use the commit SHA as name
+
+If you want to override this behaviour and specify your own name, you can do so by setting the `name` argument:
+
+```yaml
+- uses: mobile-dev-inc/action-upload@v3.0.0
+  with:
+    api-key: ${{ secrets.MOBILE_DEV_API_KEY }}
+    app-file: app.zip
+    workspace: myApp/.mobiledev
+    name: customName
+```
+
+
+# Don't wait until Upload has completed
+If you don't want the action to wait until the Upload has been completed as is the default behaviour, set the `wait` argument to `false`:
+
+```yaml
+- uses: mobile-dev-inc/action-upload@v3.0.0
+  with:
+    api-key: ${{ secrets.MOBILE_DEV_API_KEY }}
+    app-file: app.zip
+    wait: false
 ```
