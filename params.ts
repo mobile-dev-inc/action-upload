@@ -3,7 +3,6 @@ import * as core from '@actions/core';
 import { AppFile, validateMappingFile } from './app_file';
 import { PushEvent } from '@octokit/webhooks-definitions/schema'
 
-
 export type Params = {
   apiKey: string,
   apiUrl: string,
@@ -16,6 +15,7 @@ export type Params = {
   repoOwner: string
   pullRequestId?: string,
   env?: { [key: string]: string },
+  async?: boolean
 }
 
 function getBranchName(): string {
@@ -78,8 +78,8 @@ export async function getParameters(): Promise<Params> {
   const mappingFileInput = core.getInput('mapping-file', { required: false })
   const workspaceFolder = core.getInput('workspace', { required: false })
   const mappingFile = mappingFileInput && validateMappingFile(mappingFileInput)
+  const async = core.getInput('async', { required: false }) === 'true'
 
-  var env: { [key: string]: string } = {}
   var env: { [key: string]: string } = {}
   env = core.getMultilineInput('env', { required: false })
     .map(it => {
@@ -100,5 +100,5 @@ export async function getParameters(): Promise<Params> {
   const repoOwner = getRepoOwner();
   const repoName = getRepoName();
   const pullRequestId = getPullRequestId()
-  return { apiUrl, name, apiKey, appFilePath, mappingFile, workspaceFolder, branchName, repoOwner, repoName, pullRequestId, env }
+  return { apiUrl, name, apiKey, appFilePath, mappingFile, workspaceFolder, branchName, repoOwner, repoName, pullRequestId, env, async }
 }
