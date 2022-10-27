@@ -99,13 +99,13 @@ If you want to override this behaviour and specify your own name, you can do so 
 ```
 
 
-# Don't wait until Upload has completed
-If you don't want the action to wait until the Upload has been completed as is the default behaviour, set the `wait` argument to `false`:
+# Run in async mode
+If you don't want the action to wait until the Upload has been completed as is the default behaviour, set the `async` argument to `true`:
 
 ```yaml
 - uses: mobile-dev-inc/action-upload@v3.0.0
   with:
     api-key: ${{ secrets.MOBILE_DEV_API_KEY }}
     app-file: app.zip
-    wait: false
+    async: true
 ```
