@@ -65,7 +65,7 @@ Include the Proguard mapping file to deobfuscate Android performance traces:
     mapping-file: <app_name>.app.dSYM
 ```
 
-`app-file` should point to an x86 compatible Simulator build packaged in a `zip` archive
+`app-file` should point to an x86 compatible Simulator build packaged in a `zip` archive or an iOS `.app` file
 
 `mapping-file` should point to generated .dSYM file (unique per build). more info [here](https://developer.apple.com/documentation/xcode/building-your-app-to-include-debugging-information). 
 
