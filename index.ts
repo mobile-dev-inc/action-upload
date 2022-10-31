@@ -58,7 +58,8 @@ async function run() {
     repoOwner: repoOwner,
     repoName: repoName,
     pullRequestId: pullRequestId,
-    env: env
+    env: env,
+    agent: 'gh-action'
   }
 
   const { uploadId, teamId, targetId: appId } = await client.uploadRequest(
