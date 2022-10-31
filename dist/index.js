@@ -45269,7 +45269,8 @@ function run() {
             repoOwner: repoOwner,
             repoName: repoName,
             pullRequestId: pullRequestId,
-            env: env
+            env: env,
+            agent: 'gh-action'
         };
         const { uploadId, teamId, targetId: appId } = yield client.uploadRequest(request, appFile.path, workspaceZip, mappingFile && (yield (0, archive_utils_1.zipIfFolder)(mappingFile)));
         const viewUploadStr = getViewUploadInConsoleStr(uploadId, teamId, appId);
