@@ -15,7 +15,8 @@ export type UploadRequest = {
   repoName?: string
   pullRequestId?: string
   branch?: string,
-  env?: { [key: string]: string }
+  env?: { [key: string]: string },
+  agent: string
 }
 
 // irrelevant data has been factored out from this model

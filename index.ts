@@ -58,7 +58,8 @@ async function run() {
     repoOwner: repoOwner,
     repoName: repoName,
     pullRequestId: pullRequestId,
-    env: env
+    env: env,
+    agent: 'ci'
   }
 
   const { uploadId, teamId, targetId: appId } = await client.uploadRequest(
