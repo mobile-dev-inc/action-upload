@@ -2,13 +2,12 @@ import * as core from '@actions/core'
 import ApiClient, { BenchmarkStatus, Flow, UploadStatusError } from "./ApiClient";
 import { canceled, err, info, success, warning } from './log';
 
-
-
 const WAIT_TIMEOUT_MS = 1000 * 60 * 30 // 30 minutes
 const INTERVAL_MS = 10000 // 10 seconds
 const TERMINAL_STATUSES = new Set([BenchmarkStatus.SUCCESS, BenchmarkStatus.ERROR, BenchmarkStatus.WARNING, BenchmarkStatus.CANCELED])
 
 const isCompleted = (flow: Flow): boolean => TERMINAL_STATUSES.has(flow.status)
+
 const printFlowResult = (flow: Flow): void => {
   if (flow.status === BenchmarkStatus.SUCCESS) {
     success(`[Passed] ${flow.name}`)
@@ -68,9 +67,6 @@ export default class StatusPoller {
     this.markFailed(msg)
   }
 
-  reportCompletedFlows(flows: Flow[]) {
-  }
-
   async poll(
     sleep: number,
     prevErrorCount: number = 0
@@ -124,7 +120,7 @@ export default class StatusPoller {
 
   registerTimeout() {
     this.timeout = setTimeout(() => {
-      err(`Timed out waiting for Upload to complete. View the Upload in the console for more information: ${this.consoleUrl}`)
+      warning(`Timed out waiting for Upload to complete. View the Upload in the console for more information: ${this.consoleUrl}`)
     }, WAIT_TIMEOUT_MS)
   }
 
