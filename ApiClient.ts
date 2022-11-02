@@ -30,10 +30,16 @@ export class UploadStatusError {
   constructor(public status: number, public text: string) { }
 }
 
+export type Flow = {
+  name: string,
+  status: BenchmarkStatus
+}
+
 export type UploadStatusResponse = {
   uploadId: string,
-  status: string,
+  status: BenchmarkStatus,
   completed: boolean,
+  flows: Flow[]
 }
 
 export default class ApiClient {

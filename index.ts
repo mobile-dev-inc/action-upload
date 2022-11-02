@@ -5,26 +5,26 @@ import { zipFolder, zipIfFolder } from './archive_utils';
 import { getParameters } from './params';
 import { existsSync } from 'fs';
 import StatusPoller from './StatusPoller';
+import { err, info } from './log';
 
 const knownAppTypes = ['ANDROID_APK', 'IOS_BUNDLE']
 
-async function createWorkspaceZip(workspaceFolder: string | null): Promise<string | null> {
+const createWorkspaceZip = async (workspaceFolder: string | null): Promise<string | null> => {
   const resolvedWorkspaceFolder = workspaceFolder || '.mobiledev'
   if (!existsSync(resolvedWorkspaceFolder)) {
-    console.log(`Workspace directory does not exist: ${resolvedWorkspaceFolder}`)
+    err(`Workspace directory does not exist: ${resolvedWorkspaceFolder}`)
     return null
   }
-  console.log("Packaging .mobiledev folder")
+  info("Packaging .mobiledev folder")
   await zipFolder(resolvedWorkspaceFolder, 'workspace.zip');
   return 'workspace.zip'
 }
 
-export function getViewUploadInConsoleStr(uploadId: string, teamId: string, appId: string): string {
-  return `Visit the web console for more details about the upload: https://console.mobile.dev/uploads/${uploadId}?teamId=${teamId}&appId=${appId}`
+export const getConsoleUrl = (uploadId: string, teamId: string, appId: string): string => {
+  return `https://console.mobile.dev/uploads/${uploadId}?teamId=${teamId}&appId=${appId}`
 }
 
-
-async function run() {
+const run = async () => {
   const {
     apiKey,
     apiUrl,
@@ -51,7 +51,7 @@ async function run() {
 
   const client = new ApiClient(apiKey, apiUrl)
 
-  console.log("Uploading to mobile.dev")
+  info("Uploading to mobile.dev")
   const request: UploadRequest = {
     benchmarkName: name,
     branch: branchName,
@@ -68,10 +68,10 @@ async function run() {
     workspaceZip,
     mappingFile && await zipIfFolder(mappingFile),
   )
-  const viewUploadStr = getViewUploadInConsoleStr(uploadId, teamId, appId)
-  console.log(viewUploadStr)
+  const consoleUrl = getConsoleUrl(uploadId, teamId, appId)
+  info(`Visit the web console for more details about the upload: ${consoleUrl}\n`)
 
-  !async && new StatusPoller(client, uploadId, viewUploadStr).startPolling()
+  !async && new StatusPoller(client, uploadId, consoleUrl).startPolling()
 }
 
 run().catch(e => {

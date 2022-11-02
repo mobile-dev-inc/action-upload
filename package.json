@@ -27,6 +27,7 @@
     "@octokit/webhooks-definitions": "^3.67.3",
     "@vercel/ncc": "^0.33.3",
     "archiver": "^5.3.1",
+    "console-log-colors": "^0.2.3",
     "node-fetch": "^3.2.10",
     "node-stream-zip": "^1.15.0"
   }
