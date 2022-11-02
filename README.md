@@ -1,8 +1,12 @@
-# mobile.dev Upload Action
+# ⛔️ DEPRECATED ⛔️
+# Please use [action-maestro-cloud](https://github.com/mobile-dev-inc/action-maestro-cloud) instead
+
+
+## mobile.dev Upload Action
 
 Upload your app to mobile.dev for analysis.
 
-# Triggers
+## Triggers
 
 Trigger this action on (1) pushes to your main branch and (2) pull requests opened against your main branch:
 
@@ -32,7 +36,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }} # Checkout PR HEAD
 ```
 
-# Android
+## Android
 
 ```yaml
 - uses: mobile-dev-inc/action-upload@v3.0.2
@@ -55,7 +59,7 @@ Include the Proguard mapping file to deobfuscate Android performance traces:
     mapping-file: app/build/outputs/mapping/release/mapping.txt
 ```
 
-# iOS
+## iOS
 
 ```yaml
 - uses: mobile-dev-inc/action-upload@v3.0.2
@@ -81,7 +85,7 @@ By default, the action is looking for a `.mobiledev` folder with Maestro flows i
     workspace: myApp/.mobiledev
 ```
 
-# Custom name
+## Custom name
 A name will automatically be provided according to the following order:
 1. If it is a Pull Request, use Pull Request title as name
 2. If it is a normal push, use commit message as name
@@ -99,7 +103,7 @@ If you want to override this behaviour and specify your own name, you can do so 
 ```
 
 
-# Run in async mode
+## Run in async mode
 If you don't want the action to wait until the Upload has been completed as is the default behaviour, set the `async` argument to `true`:
 
 ```yaml

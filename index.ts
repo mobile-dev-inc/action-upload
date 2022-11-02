@@ -40,6 +40,8 @@ const run = async () => {
     async
   } = await getParameters()
 
+  info('⛔️ DEPRECATED ⛔️ -- please use mobile-dev-inc/action-maestro-cloud instead')
+
   const appFile = await validateAppFile(
     await zipIfFolder(appFilePath)
   );
@@ -72,6 +74,8 @@ const run = async () => {
   info(`Visit the web console for more details about the upload: ${consoleUrl}\n`)
 
   !async && new StatusPoller(client, uploadId, consoleUrl).startPolling()
+
+  info('⛔️ DEPRECATED ⛔️ -- please use mobile-dev-inc/action-maestro-cloud instead')
 }
 
 run().catch(e => {
