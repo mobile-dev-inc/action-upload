@@ -19144,6 +19144,111 @@ var isArray = Array.isArray || function (xs) {
 
 /***/ }),
 
+/***/ 3022:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+var colorList = {
+  // modifier
+  reset: [0, 0],
+  bold: [1, 22],
+  dim: [2, 22],
+  italic: [3, 23],
+  underline: [4, 24],
+  inverse: [7, 27],
+  hidden: [8, 28],
+  strikethrough: [9, 29],
+
+  // color
+  black: [30, 39],
+  red: [31, 39],
+  green: [32, 39],
+  yellow: [33, 39],
+  blue: [34, 39],
+  magenta: [35, 39],
+  cyan: [36, 39],
+  white: [37, 39],
+  gray: [90, 39],
+  grey: [90, 39],
+
+  // Bright color
+  redBright: [91, 39],
+  greenBright: [92, 39],
+  yellowBright: [93, 39],
+  blueBright: [94, 39],
+  magentaBright: [95, 39],
+  cyanBright: [96, 39],
+  whiteBright: [97, 39],
+
+  // bgColor
+  bgBlack: [40, 49],
+  bgRed: [41, 49],
+  bgGreen: [42, 49],
+  bgYellow: [43, 49],
+  bgBlue: [44, 49],
+  bgMagenta: [45, 49],
+  bgCyan: [46, 49],
+  bgWhite: [47, 49],
+
+  // bgColor - legacy styles for colors pre v1.0.0
+  blackBG: [40, 49],
+  redBG: [41, 49],
+  greenBG: [42, 49],
+  yellowBG: [43, 49],
+  blueBG: [44, 49],
+  magentaBG: [45, 49],
+  cyanBG: [46, 49],
+  whiteBG: [47, 49],
+
+  // Bright bgColor
+  bgBlackBright: [100, 49],
+  bgRedBright: [101, 49],
+  bgGreenBright: [102, 49],
+  bgYellowBright: [103, 49],
+  bgBlueBright: [104, 49],
+  bgMagentaBright: [105, 49],
+  bgCyanBright: [106, 49],
+  bgWhiteBright: [107, 49],
+};
+var isDisabled = process.env.NO_COLOR || process.argv.includes('--no-color');
+var isSupported = !isDisabled && (process.env.FORCE_COLOR ||
+  process.platform === 'win32' ||
+  process.argv.includes('--color') ||
+  ((__nccwpck_require__(6224).isatty)(1) && process.env.TERM !== 'dumb') ||
+  process.env.CI);
+
+function color(str, colorType) {
+  if (str === '' || str === void 0) return '';
+
+  var typecfg = colorList[colorType];
+  if (!isSupported || !typecfg) return str;
+
+  return '\x1b[' + typecfg[0] + 'm' + str + '\x1b[' + typecfg[1] + 'm';
+}
+color.list = colorList;
+
+function log(str, colorType) { console.log(color(str, colorType)) }
+
+Object.keys(colorList).forEach(function (key) {
+  color[key] = function (str) { return color(str, key); };
+  log[key] = function () {
+    var arr = [];
+    for (var i = 0; i < arguments.length; i++) arr.push(String(arguments[i]));
+    console.log(color(arr.join(' '), key));
+  };
+});
+
+module.exports = {
+  color: color,
+  log: log,
+  colorList: colorList,
+  isSupported() { return isSupported },
+  enable() { isSupported = true },
+  disable() { isSupported = false },
+}
+
+
+/***/ }),
+
 /***/ 5898:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -44967,32 +45072,89 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const ApiClient_1 = __nccwpck_require__(9494);
+const log_1 = __nccwpck_require__(3826);
 const WAIT_TIMEOUT_MS = 1000 * 60 * 30; // 30 minutes
 const INTERVAL_MS = 10000; // 10 seconds
+const TERMINAL_STATUSES = new Set([ApiClient_1.BenchmarkStatus.SUCCESS, ApiClient_1.BenchmarkStatus.ERROR, ApiClient_1.BenchmarkStatus.WARNING, ApiClient_1.BenchmarkStatus.CANCELED]);
+const isCompleted = (flow) => TERMINAL_STATUSES.has(flow.status);
+const printFlowResult = (flow) => {
+    if (flow.status === ApiClient_1.BenchmarkStatus.SUCCESS) {
+        (0, log_1.success)(`[Passed] ${flow.name}`);
+    }
+    else if (flow.status === ApiClient_1.BenchmarkStatus.ERROR) {
+        (0, log_1.err)(`[Failed] ${flow.name}`);
+    }
+    else if (flow.status === ApiClient_1.BenchmarkStatus.WARNING) {
+        (0, log_1.warning)(`[Warning] ${flow.name}`);
+    }
+    else if (flow.status === ApiClient_1.BenchmarkStatus.CANCELED) {
+        (0, log_1.canceled)(`[Canceled] ${flow.name}`);
+    }
+};
+const flowWord = (count) => count === 1 ? 'Flow' : 'Flows';
+const getFailedFlowsCountStr = (flows) => {
+    const failedFlows = flows.filter(flow => flow.status === ApiClient_1.BenchmarkStatus.ERROR);
+    return `${failedFlows.length}/${flows.length} ${flowWord(flows.length)} Failed`;
+};
+const printUploadResult = (status, flows) => {
+    if (status === ApiClient_1.BenchmarkStatus.ERROR) {
+        (0, log_1.err)(getFailedFlowsCountStr(flows));
+    }
+    else {
+        const passedFlows = flows.filter(flow => flow.status === ApiClient_1.BenchmarkStatus.SUCCESS || flow.status === ApiClient_1.BenchmarkStatus.WARNING);
+        const canceledFlows = flows.filter(flow => flow.status === ApiClient_1.BenchmarkStatus.CANCELED);
+        if (passedFlows.length > 0) {
+            (0, log_1.success)(`${passedFlows.length}/${flows.length} ${flowWord(flows.length)} Passed`);
+            if (canceledFlows.length > 0) {
+                (0, log_1.canceled)(`${canceledFlows.length}/${flows.length} ${flowWord(flows.length)} Canceled`);
+            }
+        }
+        else {
+            (0, log_1.canceled)('Upload Canceled');
+        }
+    }
+};
 class StatusPoller {
-    constructor(client, uploadId, viewUploadInConsoleStr) {
+    constructor(client, uploadId, consoleUrl) {
         this.client = client;
         this.uploadId = uploadId;
-        this.viewUploadInConsoleStr = viewUploadInConsoleStr;
+        this.consoleUrl = consoleUrl;
+        this.completedFlows = {};
     }
     markFailed(msg) {
         core.setFailed(msg);
     }
+    onError(errMsg, error) {
+        let msg = `${errMsg}`;
+        if (!!error)
+            msg += ` - receveied error ${error}`;
+        msg += `. View the Upload in the console for more information: ${this.consoleUrl}`;
+        this.markFailed(msg);
+    }
     poll(sleep, prevErrorCount = 0) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { completed, status } = yield this.client.getUploadStatus(this.uploadId);
+                const { completed, status, flows } = yield this.client.getUploadStatus(this.uploadId);
+                for (const flow of flows.filter(isCompleted)) {
+                    if (!this.completedFlows[flow.name]) {
+                        printFlowResult(flow);
+                        this.completedFlows[flow.name] = flow.status;
+                    }
+                }
                 if (completed) {
                     this.teardown();
+                    console.log('');
+                    printUploadResult(status, flows);
+                    console.log('');
+                    (0, log_1.info)(`==== View details in the console ====\n`);
+                    (0, log_1.info)(`${this.consoleUrl}`);
                     if (status === ApiClient_1.BenchmarkStatus.ERROR) {
-                        this.markFailed(`Upload failed. ${this.viewUploadInConsoleStr}`);
-                    }
-                    else {
-                        console.log(`Upload completed! ${this.viewUploadInConsoleStr}`);
+                        const resultStr = getFailedFlowsCountStr(flows);
+                        console.log('');
+                        this.markFailed(resultStr);
                     }
                 }
                 else {
-                    console.log(`Upload is ${status.toLowerCase()}, continuing to wait`);
                     setTimeout(() => this.poll(sleep), sleep);
                 }
             }
@@ -45008,22 +45170,22 @@ class StatusPoller {
                             setTimeout(() => this.poll(sleep, prevErrorCount++), sleep);
                         }
                         else {
-                            this.markFailed(`Request to get status information failed with status code ${error.status}: ${error.text}`);
+                            this.onError(`Request to get status information failed with status code ${error.status}: ${error.text}`);
                         }
                     }
                     else {
-                        this.markFailed(`Could not get Upload status. Received error ${error}. ${this.viewUploadInConsoleStr}`);
+                        this.onError('Could not get Upload status', error);
                     }
                 }
                 else {
-                    this.markFailed(`Could not get Upload status. Received error ${error}. ${this.viewUploadInConsoleStr}`);
+                    this.onError('Could not get Upload status', error);
                 }
             }
         });
     }
     registerTimeout() {
         this.timeout = setTimeout(() => {
-            this.markFailed(`Timed out waiting for Upload to complete. ${this.viewUploadInConsoleStr}`);
+            (0, log_1.warning)(`Timed out waiting for Upload to complete. View the Upload in the console for more information: ${this.consoleUrl}`);
         }, WAIT_TIMEOUT_MS);
     }
     teardown() {
@@ -45032,9 +45194,10 @@ class StatusPoller {
     startPolling() {
         try {
             this.poll(INTERVAL_MS);
+            (0, log_1.info)('Waiting for analyses to complete...\n');
         }
         catch (err) {
-            this.markFailed(err instanceof Error ? err.message : `${err}`);
+            this.markFailed(err instanceof Error ? err.message : `${err} `);
         }
         this.registerTimeout();
     }
@@ -45228,7 +45391,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getViewUploadInConsoleStr = void 0;
+exports.getConsoleUrl = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const ApiClient_1 = __importDefault(__nccwpck_require__(9494));
 const app_file_1 = __nccwpck_require__(9617);
@@ -45236,51 +45399,81 @@ const archive_utils_1 = __nccwpck_require__(1132);
 const params_1 = __nccwpck_require__(805);
 const fs_1 = __nccwpck_require__(7147);
 const StatusPoller_1 = __importDefault(__nccwpck_require__(2575));
+const log_1 = __nccwpck_require__(3826);
 const knownAppTypes = ['ANDROID_APK', 'IOS_BUNDLE'];
-function createWorkspaceZip(workspaceFolder) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const resolvedWorkspaceFolder = workspaceFolder || '.mobiledev';
-        if (!(0, fs_1.existsSync)(resolvedWorkspaceFolder)) {
-            console.log(`Workspace directory does not exist: ${resolvedWorkspaceFolder}`);
-            return null;
-        }
-        console.log("Packaging .mobiledev folder");
-        yield (0, archive_utils_1.zipFolder)(resolvedWorkspaceFolder, 'workspace.zip');
-        return 'workspace.zip';
-    });
-}
-function getViewUploadInConsoleStr(uploadId, teamId, appId) {
-    return `Visit the web console for more details about the upload: https://console.mobile.dev/uploads/${uploadId}?teamId=${teamId}&appId=${appId}`;
-}
-exports.getViewUploadInConsoleStr = getViewUploadInConsoleStr;
-function run() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const { apiKey, apiUrl, name, appFilePath, mappingFile, workspaceFolder, branchName, repoOwner, repoName, pullRequestId, env, async } = yield (0, params_1.getParameters)();
-        const appFile = yield (0, app_file_1.validateAppFile)(yield (0, archive_utils_1.zipIfFolder)(appFilePath));
-        if (!knownAppTypes.includes(appFile.type)) {
-            throw new Error(`Unsupported app file type: ${appFile.type}`);
-        }
-        const workspaceZip = yield createWorkspaceZip(workspaceFolder);
-        const client = new ApiClient_1.default(apiKey, apiUrl);
-        console.log("Uploading to mobile.dev");
-        const request = {
-            benchmarkName: name,
-            branch: branchName,
-            repoOwner: repoOwner,
-            repoName: repoName,
-            pullRequestId: pullRequestId,
-            env: env,
-            agent: 'gh-action'
-        };
-        const { uploadId, teamId, targetId: appId } = yield client.uploadRequest(request, appFile.path, workspaceZip, mappingFile && (yield (0, archive_utils_1.zipIfFolder)(mappingFile)));
-        const viewUploadStr = getViewUploadInConsoleStr(uploadId, teamId, appId);
-        console.log(viewUploadStr);
-        !async && new StatusPoller_1.default(client, uploadId, viewUploadStr).startPolling();
-    });
-}
+const createWorkspaceZip = (workspaceFolder) => __awaiter(void 0, void 0, void 0, function* () {
+    const resolvedWorkspaceFolder = workspaceFolder || '.mobiledev';
+    if (!(0, fs_1.existsSync)(resolvedWorkspaceFolder)) {
+        (0, log_1.err)(`Workspace directory does not exist: ${resolvedWorkspaceFolder}`);
+        return null;
+    }
+    (0, log_1.info)("Packaging .mobiledev folder");
+    yield (0, archive_utils_1.zipFolder)(resolvedWorkspaceFolder, 'workspace.zip');
+    return 'workspace.zip';
+});
+const getConsoleUrl = (uploadId, teamId, appId) => {
+    return `https://console.mobile.dev/uploads/${uploadId}?teamId=${teamId}&appId=${appId}`;
+};
+exports.getConsoleUrl = getConsoleUrl;
+const run = () => __awaiter(void 0, void 0, void 0, function* () {
+    const { apiKey, apiUrl, name, appFilePath, mappingFile, workspaceFolder, branchName, repoOwner, repoName, pullRequestId, env, async } = yield (0, params_1.getParameters)();
+    const appFile = yield (0, app_file_1.validateAppFile)(yield (0, archive_utils_1.zipIfFolder)(appFilePath));
+    if (!knownAppTypes.includes(appFile.type)) {
+        throw new Error(`Unsupported app file type: ${appFile.type}`);
+    }
+    const workspaceZip = yield createWorkspaceZip(workspaceFolder);
+    const client = new ApiClient_1.default(apiKey, apiUrl);
+    (0, log_1.info)("Uploading to mobile.dev");
+    const request = {
+        benchmarkName: name,
+        branch: branchName,
+        repoOwner: repoOwner,
+        repoName: repoName,
+        pullRequestId: pullRequestId,
+        env: env,
+        agent: 'gh-action'
+    };
+    const { uploadId, teamId, targetId: appId } = yield client.uploadRequest(request, appFile.path, workspaceZip, mappingFile && (yield (0, archive_utils_1.zipIfFolder)(mappingFile)));
+    const consoleUrl = (0, exports.getConsoleUrl)(uploadId, teamId, appId);
+    (0, log_1.info)(`Visit the web console for more details about the upload: ${consoleUrl}\n`);
+    !async && new StatusPoller_1.default(client, uploadId, consoleUrl).startPolling();
+});
 run().catch(e => {
     core.setFailed(`Error running mobile.dev Upload Action: ${e.message}`);
 });
+
+
+/***/ }),
+
+/***/ 3826:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.canceled = exports.warning = exports.err = exports.success = exports.info = void 0;
+const console_log_colors_1 = __nccwpck_require__(3022);
+const { red, green, yellowBright, gray, cyan } = console_log_colors_1.color;
+const info = (msg) => {
+    console.log(cyan(msg));
+};
+exports.info = info;
+const success = (msg) => {
+    console.log(green(msg));
+};
+exports.success = success;
+const err = (msg) => {
+    console.log(red(msg));
+};
+exports.err = err;
+const warning = (msg) => {
+    console.log(yellowBright(msg));
+};
+exports.warning = warning;
+const canceled = (msg) => {
+    console.log(gray(msg));
+};
+exports.canceled = canceled;
 
 
 /***/ }),
@@ -45562,6 +45755,14 @@ module.exports = require("string_decoder");
 
 "use strict";
 module.exports = require("tls");
+
+/***/ }),
+
+/***/ 6224:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("tty");
 
 /***/ }),
 
